@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speech-to-Text API</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f6f8fa;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #222;
+      margin-bottom: 1rem;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+      text-align: center;
+    }
+    input[type=file] {
+      margin: 1rem 0;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      text-align: left;
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 Speech-to-Text API</h1>
+  <div class="container">
+    <input type="file" id="audioInput" accept="audio/*" />
+    <br />
+    <button onclick="uploadAudio()">Transcribe</button>
+    <p id="status"></p>
+    <pre id="result"></pre>
+  </div>
+
+  <script>
+    async function uploadAudio() {
+      const fileInput = document.getElementById('audioInput');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+
+      if (!fileInput.files[0]) {
+        alert('Please select an audio file!');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('audio', fileInput.files[0]);
+      status.textContent = 'Transcribing... please wait ⏳';
+      result.textContent = '';
+
+      try {
+        const res = await fetch('/transcribe', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          status.textContent = '✅ Transcription successful!';
+          result.textContent = data.text;
+        } else {
+          status.textContent = '❌ Failed: ' + (data.error || 'Unknown error');
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Network or server error';
+      }
+    }
+  </script>
+</body>
+</html>
 
