@@ -1,12 +1,11 @@
-from flask import Flask, request, jsonify, render_template
-from groq import Client  # ✅ only this import
+from flask import Flask, request, jsonify
+from groq import Groq  # ✅ Changed from Client to Groq
 import os
-
 
 app = Flask(__name__)
 
-# ⚠️ IMPORTANT: Replace with your Groq API key
-GROQ_API_KEY = "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"
+# Get API key from environment variable (more secure for Render)
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -20,11 +19,9 @@ def health_check():
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
-    """
-    Speech-to-Text endpoint
-    """
+    """Speech-to-Text endpoint"""
     try:
-        if GROQ_API_KEY == "your_groq_api_key_here":
+        if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
             return jsonify({'error': 'API key not configured'}), 500
 
         if 'audio' not in request.files:
@@ -44,8 +41,8 @@ def transcribe_audio():
         print(f"   Model: {model}")
         print(f"{'='*50}\n")
 
-        # ✅ Correct Client initialization
-        client = Client(api_key=GROQ_API_KEY)
+        # ✅ FIXED: Use Groq() instead of Client()
+        client = Groq(api_key=GROQ_API_KEY)
 
         # Transcribe
         transcription = client.audio.transcriptions.create(
@@ -67,7 +64,8 @@ def transcribe_audio():
 
     except Exception as e:
         print(f"❌ Error: {str(e)}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e),
@@ -79,7 +77,7 @@ def transcribe_audio():
 def transcribe_with_timestamps():
     """Speech-to-Text with word-level timestamps"""
     try:
-        if GROQ_API_KEY == "your_groq_api_key_here":
+        if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
             return jsonify({'error': 'API key not configured'}), 500
 
         if 'audio' not in request.files:
@@ -92,8 +90,8 @@ def transcribe_with_timestamps():
         language = request.form.get('language', 'en')
         model = request.form.get('model', 'whisper-large-v3')
 
-        # ✅ Use Client instead of Groq here too
-        client = Client(api_key=GROQ_API_KEY)
+        # ✅ FIXED: Use Groq() here too
+        client = Groq(api_key=GROQ_API_KEY)
 
         transcription = client.audio.transcriptions.create(
             file=(audio_file.filename, audio_file.read()),
@@ -129,14 +127,14 @@ def home():
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5001))
     print("\n" + "="*60)
     print("🎤 SPEECH-TO-TEXT API SERVER")
     print("="*60)
-    if GROQ_API_KEY == "your_groq_api_key_here":
+    if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
         print("⚠️ WARNING: Please add your Groq API key!")
     else:
         print("✅ API Key: Configured")
-    print("\n🌐 Server: http://127.0.0.1:5001")
+    print(f"\n🌐 Server: http://0.0.0.0:{port}")
     print("="*60 + "\n")
-    app.run(debug=True, port=5001, host='0.0.0.0')
-
+    app.run(debug=True, port=port, host='0.0.0.0')
