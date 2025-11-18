@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Get API key from environment variable (more secure for Render)
-GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -138,5 +138,6 @@ if __name__ == '__main__':
     print(f"\n🌐 Server: http://0.0.0.0:{port}")
     print("="*60 + "\n")
     app.run(debug=True, port=port, host='0.0.0.0')
+
 
 
